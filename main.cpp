@@ -131,13 +131,30 @@ int main(int argc, char* argv[]) {
 	for (int i {0}; i < array_size; ++i) {///потом этот фор можно будет совсем убрать
 		L[i][0] = array[i][0];
 	}
-	for (int j {1}; j < array_size; ++j) {/////
-		U[0][j] = array[0][j] / L[0][0];
-	}
+	
 	//	array_print(array_size, L);
 	//	array_print(array_size, U);
 	//tmp
-	for (int counter {1}; counter < array_size - 1; ++counter) {
+	for (int counter {0}; counter < array_size - 1;) {
+		
+		{//Uik
+			if (counter == 0) {
+				for (int j {1}; j < array_size; ++j) {/////
+					U[0][j] = array[0][j] / L[0][0];
+				}				
+			} else {
+				int i = counter;
+				for(int k {i + 1}; k < array_size; ++k) {
+					double sum {0};
+					//tmp2
+					for (int j {0}; j < i; ++j) {
+						sum = sum + L[i][j] * U[j][k];
+					}
+					U[i][k] = (array[i][k] - sum) / L[i][i];
+				}
+			}
+		}
+		++counter;
 		{//Lik
 			int k = counter;
 			for (int i {k}; i < array_size; ++i) {
@@ -149,26 +166,7 @@ int main(int argc, char* argv[]) {
 				L[i][k] = array[i][k] - sum;
 			}
 		}
-		{//Uik
-			int i = counter;
-			for(int k {i + 1}; k < array_size; ++k) {
-				double sum {0};
-				//tmp2
-				for (int j {0}; j < i; ++j) {
-					sum = sum + L[i][j] * U[j][k];
-				}
-				U[i][k] = (array[i][k] - sum) / L[i][i];
-			}
-		}
 	}
-	int k = array_size - 1;
-	int i {k};
-	double sum {0};
-	//tmp1
-	for (int j {0}; j < k; ++j) {
-		sum = sum + L[i][j] * U[j][k];
-	}
-	L[i][k] = array[i][k] - sum;
 	array_print(array_size, L);
 	array_print(array_size, U);
 
