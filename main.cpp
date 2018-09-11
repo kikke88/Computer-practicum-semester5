@@ -2,7 +2,7 @@
 #include <fstream>
 #include <functional>
 
-void b_input(int size, double** arr, double** b_arr, int method) {
+void b_input(const int size, double** arr, double** b_arr, int method) { // const double **
 	double sum {0};
 	switch (method) {
 		
@@ -91,6 +91,9 @@ void array_print(int size, double ** arr) {
 	}
 }
 
+//void main_func(const int size, double** arr, /*потом убрать следующие два аргумента */double*** L, double*** U, const double* b_arr, double  
+
+
 int main(int argc, char* argv[]) {
 	int array_size {0};///мб убрать инициализацию
 	double** array {nullptr};
@@ -112,8 +115,8 @@ int main(int argc, char* argv[]) {
 	}
 	std::cout << std::endl;
 
-	double** L = nullptr;
-	double** U = nullptr;
+	double** L {nullptr};
+	double** U {nullptr};
 
 	L = new double* [array_size];
 	for (int i {0}; i < array_size; ++i) {
