@@ -91,7 +91,51 @@ void array_print(int size, double ** arr) {
 	}
 }
 
-//void main_func(const int size, double** arr, /*потом убрать следующие два аргумента */double*** L, double*** U, const double* b_arr, double  
+void main_func(const int size, const double** arr, /*потом убрать следующие два аргумента */double*** L, double*** U, const double* b_arr, double** x_arr,) {
+ 	
+    
+    //algorithm realisation
+	for (int i {0}; i < size; ++i) {///потом этот фор можно будет совсем убрать
+		(*L)[i][0] = arr[i][0];
+	}
+	
+	for (int counter {0}; counter < size - 1;) {
+		
+		{//Uik
+			if (counter == 0) {
+				for (int j {1}; j < size; ++j) {/////
+					(*U)[0][j] = arr[0][j] / (*L)[0][0];
+				}				
+			} else {
+				int i = counter;
+				for(int k {i + 1}; k < size; ++k) {
+					double sum {0};
+					for (int j {0}; j < i; ++j) {
+						sum = sum + (*L)[i][j] * (*U)[j][k];
+					}
+					(*U)[i][k] = (arr[i][k] - sum) / (*L)[i][i];
+				}
+			}
+		}
+		++counter;
+		{//Lik
+			int k = counter;
+			for (int i {k}; i < size; ++i) {
+				double sum {0};
+				//tmp1
+				for (int j {0}; j < k; ++j) {
+					sum = sum + (*L)[i][j] * (*U)[j][k];
+				}
+				(*L)[i][k] = arr[i][k] - sum;
+			}
+		}
+	}
+ 	array_print(array_size, L);
+	array_print(array_size, U);
+    ///
+    ////
+    ///
+}
 
 
 int main(int argc, char* argv[]) {
@@ -117,6 +161,7 @@ int main(int argc, char* argv[]) {
 
 	double** L {nullptr};
 	double** U {nullptr};
+    double* x{nullptr};
 
 	L = new double* [array_size];
 	for (int i {0}; i < array_size; ++i) {
@@ -127,49 +172,11 @@ int main(int argc, char* argv[]) {
 	for (int i {0}; i < array_size; ++i) {
 		U[i] = new double[array_size]();
 	}
-	//	array_print(array_size, L);
-	//	array_print(array_size, U);
+    x = new double[array_size]();
 
-	//algorithm realisation
-	for (int i {0}; i < array_size; ++i) {///потом этот фор можно будет совсем убрать
-		L[i][0] = array[i][0];
-	}
-	
 	//	array_print(array_size, L);
 	//	array_print(array_size, U);
-	//tmp
-	for (int counter {0}; counter < array_size - 1;) {
-		
-		{//Uik
-			if (counter == 0) {
-				for (int j {1}; j < array_size; ++j) {/////
-					U[0][j] = array[0][j] / L[0][0];
-				}				
-			} else {
-				int i = counter;
-				for(int k {i + 1}; k < array_size; ++k) {
-					double sum {0};
-					//tmp2
-					for (int j {0}; j < i; ++j) {
-						sum = sum + L[i][j] * U[j][k];
-					}
-					U[i][k] = (array[i][k] - sum) / L[i][i];
-				}
-			}
-		}
-		++counter;
-		{//Lik
-			int k = counter;
-			for (int i {k}; i < array_size; ++i) {
-				double sum {0};
-				//tmp1
-				for (int j {0}; j < k; ++j) {
-					sum = sum + L[i][j] * U[j][k];
-				}
-				L[i][k] = array[i][k] - sum;
-			}
-		}
-	}
+    main_func(array_size, array, &L, &U, b_array, &x); 
 	array_print(array_size, L);
 	array_print(array_size, U);
 
@@ -192,6 +199,7 @@ int main(int argc, char* argv[]) {
 	}
 	delete[] U;
 	/////
+    delete[] x;
 	delete[] b_array;
 	//////
 
