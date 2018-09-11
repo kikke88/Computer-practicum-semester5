@@ -73,7 +73,7 @@ void array_input(int& size, double*** arr, double** b_arr, std::function<double(
 	b_input(size, *arr, b_arr, method);	
 }
 
-void array_print(int size, double ** arr) {
+void two_dimensianal_array_print(int size, double** arr) {
 	std::cout << "____________________________" << std::endl;
 	for (int i {0}; i < size; ++i) {
 		for (int j {0}; j < size; ++j) {
@@ -83,14 +83,21 @@ void array_print(int size, double ** arr) {
 	}
 }
 
+void one_dimensianal_array_print(int size, double* arr) {
+	std::cout << "____________________________" << std::endl;
+	for (int i {0}; i < size; ++i) {
+		std::cout << arr[i] << "\t";
+	}
+	std::cout << std::endl;
+}
 //const
-void main_func(const int size, double** arr, /*потом убрать следующие два аргумента */ double*** L, double*** U, const double* b_arr, double** x_arr) { 	
+void main_func(const int size, double** arr, double*** L,
+				double*** U, const double* b_arr, double** x_arr) { 	
     //algorithm realisation
-	for (int i {0}; i < size; ++i) {///потом этот фор можно будет совсем убрать
+	for (int i {0}; i < size; ++i) {///
 		(*L)[i][0] = arr[i][0];
 	}	
 	for (int counter {0}; counter < size - 1;) {
-		
 		{//Uik
 			if (counter == 0) {
 				for (int j {1}; j < size; ++j) {/////
@@ -120,7 +127,7 @@ void main_func(const int size, double** arr, /*потом убрать след�
 			}
 		}
 	}
-	for (int i {0}; i < size; ++i) {//потом убрать
+	for (int i {0}; i < size; ++i) {//
 		(*U)[i][i] = 1;
 	}
 	double* y = new double [size]();
@@ -140,14 +147,16 @@ void main_func(const int size, double** arr, /*потом убрать след�
 		}
 		(*x_arr)[i] = y[i] - sum;
 	}
-	std::cout << "GGGGGG" << std::endl;//////////
-	for(int i {0}; i < size; ++i) {
-		std::cout << (*x_arr)[i] << "\t";
-	}	
-	std::cout << std::endl;
+	one_dimensianal_array_print(size, *x_arr);	
 	delete[] y;
 }
 
+void ky(int size, std::ostream&  q) {
+	q << size << std::endl;
+}
+void ky(int size, std::ostream&&  q) {
+	q << size << std::endl;
+}
 
 int main(int argc, char* argv[]) {
 	int array_size {0};
@@ -160,12 +169,8 @@ int main(int argc, char* argv[]) {
 	} else {
 		array_input(array_size, &array, &b_array, [](int i, int j) -> double { return i + j + 1; });
 	}
-	//array_print(array_size, array);
-	//std::cout << "____________________________" << std::endl;
-	//for (int j {0}; j < array_size; ++j) {
-	//		std::cout << b_array[j] << "\t";
-	//}
-	//std::cout << std::endl;
+	two_dimensianal_array_print(array_size, array);
+	one_dimensianal_array_print(array_size, b_array);
 	double** L {nullptr};
 	double** U {nullptr};
     double* x {nullptr};
@@ -179,9 +184,10 @@ int main(int argc, char* argv[]) {
 	}
     x = new double[array_size]();
     main_func(array_size, array, &L, &U, b_array, &x); 
+	two_dimensianal_array_print(array_size, L);
+	two_dimensianal_array_print(array_size, U);
 
-	array_print(array_size, L);
-	array_print(array_size, U);
+	ky(array_size, std::ofstream ("zzz.txt"));
 	//////////Очистка памяти
 	for (int i {0}; i < array_size; ++i) {
 		delete[] array[i];
