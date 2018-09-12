@@ -2,7 +2,7 @@
 #include <fstream>
 #include <functional>
 
-void b_input(const int size, double** arr, double** b_arr, const int method) { // const double **
+void b_input(const int size, const double* const* arr, double** b_arr, const int method) { // const double **
 	double sum {0};
 	switch (method) {
 		case 0: {
@@ -56,7 +56,7 @@ void array_input(int& size, double*** arr, double** b_arr, std::ifstream& file) 
 	}
 }
 
-void array_input(int& size, double*** arr, double** b_arr, std::function<double(int, int)> func) {
+void array_input(int& size, double*** arr, double** b_arr, std::function<double(const int, const int)> func) {
 	std::cin >> size;
 	*arr = new double* [size];
 	for (int i = 0; i < size; ++i) {
@@ -73,30 +73,31 @@ void array_input(int& size, double*** arr, double** b_arr, std::function<double(
 	b_input(size, *arr, b_arr, method);	
 }
 
-void two_dimensianal_array_print(int size, double** arr) {
-	std::cout << "____________________________" << std::endl;
+void two_dimensianal_array_print(const int size, const double* const* arr, std::ostream& stream) {
+	stream << "____________________________" << std::endl;
 	for (int i {0}; i < size; ++i) {
 		for (int j {0}; j < size; ++j) {
-			std::cout << arr[i][j] << "\t";
+			stream << arr[i][j] << "\t";
 		}
-		std::cout << std::endl;
+		stream << std::endl;
 	}
 }
 
-void one_dimensianal_array_print(int size, double* arr) {
-	std::cout << "____________________________" << std::endl;
+void one_dimensianal_array_print(const int size, const double* arr, std::ostream& stream) {
+	stream << "____________________________" << std::endl;
 	for (int i {0}; i < size; ++i) {
-		std::cout << arr[i] << "\t";
+		stream << arr[i] << "\t";
 	}
-	std::cout << std::endl;
+	stream << std::endl;
 }
 //const
-void main_func(const int size, double** arr, double*** L,
+void main_func(const int size, const double* const* arr, double*** L,
 				double*** U, const double* b_arr, double** x_arr) { 	
     //algorithm realisation
 	for (int i {0}; i < size; ++i) {///
 		(*L)[i][0] = arr[i][0];
-	}	
+	}
+	//sum
 	for (int counter {0}; counter < size - 1;) {
 		{//Uik
 			if (counter == 0) {
@@ -119,7 +120,6 @@ void main_func(const int size, double** arr, double*** L,
 			int k = counter;
 			for (int i {k}; i < size; ++i) {
 				double sum {0};
-				//tmp1
 				for (int j {0}; j < k; ++j) {
 					sum = sum + (*L)[i][j] * (*U)[j][k];
 				}
@@ -142,21 +142,31 @@ void main_func(const int size, double** arr, double*** L,
 	//sum
 	for (int i {size - 1}; i >= 0; --i)	{
 		double sum {0};
-		for (int j {i}; j < size - 1; ++j) {
-			sum = sum + (*x_arr)[j + 1] * (*U)[i][j + 1];
+		for (int j {i + 1}; j < size; ++j) {
+			sum = sum + (*x_arr)[j] * (*U)[i][j];
 		}
 		(*x_arr)[i] = y[i] - sum;
 	}
-	one_dimensianal_array_print(size, *x_arr);	
 	delete[] y;
 }
 
-void ky(int size, std::ostream&  q) {
-	q << size << std::endl;
+void result_output(const int size, const double* const* L, const double* const* U,
+					const double* x_arr, const double* b_arr, bool bigsize) {
+
+	
+	if (bigsize) {
+		std::ofstream result_file {"result.txt"};
+		two_dimensianal_array_print(size, L, result_file);
+		two_dimensianal_array_print(size, U, result_file);
+		one_dimensianal_array_print(size, x_arr, result_file);
+	} else {
+		two_dimensianal_array_print(size, L, std::cout);
+		two_dimensianal_array_print(size, U, std::cout);
+		one_dimensianal_array_print(size, x_arr, std::cout);
+	}
+	//невязка
 }
-void ky(int size, std::ostream&&  q) {
-	q << size << std::endl;
-}
+
 
 int main(int argc, char* argv[]) {
 	int array_size {0};
@@ -167,10 +177,10 @@ int main(int argc, char* argv[]) {
 		array_input(array_size, &array, &b_array, file);
 		file.close();	
 	} else {
-		array_input(array_size, &array, &b_array, [](int i, int j) -> double { return i + j + 1; });
+		array_input(array_size, &array, &b_array, [](const int i, const int j) -> double { return i + j + 1; });
 	}
-	two_dimensianal_array_print(array_size, array);
-	one_dimensianal_array_print(array_size, b_array);
+	two_dimensianal_array_print(array_size, array, std::cout);
+	one_dimensianal_array_print(array_size, b_array, std::cout);
 	double** L {nullptr};
 	double** U {nullptr};
     double* x {nullptr};
@@ -184,10 +194,11 @@ int main(int argc, char* argv[]) {
 	}
     x = new double[array_size]();
     main_func(array_size, array, &L, &U, b_array, &x); 
-	two_dimensianal_array_print(array_size, L);
-	two_dimensianal_array_print(array_size, U);
-
-	ky(array_size, std::ofstream ("zzz.txt"));
+	if (array_size <= 10) {
+		result_output(array_size, L, U, x, b_array, 0);
+	} else {
+		result_output(array_size, L, U, x, b_array, 1);
+	}
 	//////////Очистка памяти
 	for (int i {0}; i < array_size; ++i) {
 		delete[] array[i];
