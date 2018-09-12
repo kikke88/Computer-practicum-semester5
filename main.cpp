@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <functional>
+#include <cmath>
 
-void b_input(const int size, const double* const* arr, double** b_arr, const int method) { // const double **
+void b_input(const int size, const double* const* arr, double** b_arr, const int method) {
 	double sum {0};
 	switch (method) {
 		case 0: {
@@ -45,9 +46,9 @@ void array_input(int& size, double*** arr, double** b_arr, std::ifstream& file) 
 	file >> size;
 	*arr = new double* [size];
 	for (int i {0}; i < size; ++i) {
-		(*arr)[i] = new double[size];
+		(*arr)[i] = new double[size]();
 	}
-	*b_arr = new double[size];
+	*b_arr = new double[size]();
 	for (int i {0}; i < size; ++i) {
 		for (int j {0}; j < size; ++j) {
 			file >> (*arr)[i][j];
@@ -86,52 +87,44 @@ void two_dimensianal_array_print(const int size, const double* const* arr, std::
 void one_dimensianal_array_print(const int size, const double* arr, std::ostream& stream) {
 	stream << "____________________________" << std::endl;
 	for (int i {0}; i < size; ++i) {
-		stream << arr[i] << "\t";
+		stream << arr[i] << std::endl;
 	}
-	stream << std::endl;
 }
-//const
+
 void main_func(const int size, const double* const* arr, double*** L,
 				double*** U, const double* b_arr, double** x_arr) { 	
-    //algorithm realisation
-	for (int i {0}; i < size; ++i) {///
+	for (int i {0}; i < size; ++i) {
 		(*L)[i][0] = arr[i][0];
 	}
-	//sum
 	for (int counter {0}; counter < size - 1;) {
-		{//Uik
-			if (counter == 0) {
-				for (int j {1}; j < size; ++j) {/////
-					(*U)[0][j] = arr[0][j] / (*L)[0][0];
-				}				
-			} else {
-				int i = counter;
-				for(int k {i + 1}; k < size; ++k) {
-					double sum {0};
-					for (int j {0}; j < i; ++j) {
-						sum = sum + (*L)[i][j] * (*U)[j][k];
-					}
-					(*U)[i][k] = (arr[i][k] - sum) / (*L)[i][i];
+		if (counter == 0) {//Uik
+			for (int j {1}; j < size; ++j) {
+				(*U)[0][j] = arr[0][j] / (*L)[0][0];
+			}				
+		} else {
+			int i = counter;
+			for(int k {i + 1}; k < size; ++k) {
+				double sum {0};
+				for (int j {0}; j < i; ++j) {
+					sum = sum + (*L)[i][j] * (*U)[j][k];
 				}
+				(*U)[i][k] = (arr[i][k] - sum) / (*L)[i][i];
 			}
 		}
 		++counter;
-		{//Lik
-			int k = counter;
-			for (int i {k}; i < size; ++i) {
-				double sum {0};
-				for (int j {0}; j < k; ++j) {
-					sum = sum + (*L)[i][j] * (*U)[j][k];
-				}
-				(*L)[i][k] = arr[i][k] - sum;
+		int k = counter;//Lik
+		for (int i {k}; i < size; ++i) {
+			double sum {0};
+			for (int j {0}; j < k; ++j) {
+				sum = sum + (*L)[i][j] * (*U)[j][k];
 			}
+			(*L)[i][k] = arr[i][k] - sum;
 		}
 	}
-	for (int i {0}; i < size; ++i) {//
+	for (int i {0}; i < size; ++i) {
 		(*U)[i][i] = 1;
 	}
 	double* y = new double [size]();
-	//sum
 	for (int i {0}; i < size; ++i)	{
 		double sum {0};
 		for (int j {0}; j < i; ++j) {
@@ -139,7 +132,6 @@ void main_func(const int size, const double* const* arr, double*** L,
 		}
 		y[i] = (b_arr[i] - sum) / (*L)[i][i];
 	}
-	//sum
 	for (int i {size - 1}; i >= 0; --i)	{
 		double sum {0};
 		for (int j {i + 1}; j < size; ++j) {
@@ -150,23 +142,46 @@ void main_func(const int size, const double* const* arr, double*** L,
 	delete[] y;
 }
 
-void result_output(const int size, const double* const* L, const double* const* U,
-					const double* x_arr, const double* b_arr, bool bigsize) {
+double residual_calculation(const int size, const double* const* L, const double* const* U, double* x_arr, double* b_arr) {
+	for (int i {0}; i < size; ++i) {
+		double sum {x_arr[i]};
+		for (int j{i + 1}; j < size; ++j) {
+			sum = sum + x_arr[j] * U[i][j];
+		}
+		x_arr[i] = sum;
+	}
+	for (int i {0}; i < size; ++i) {
+		double sum {0};
+		for (int j{0}; j < i + 1; ++j) {
+			sum = sum + x_arr[j] * L[i][j];
+		}
+		b_arr[i] = pow(sum - b_arr[i], 2);
+	}
+	double res {0};
+	for (int i {0}; i < size; ++i)
+	{
+		res = res + b_arr[i];
+	}
+	res = sqrt(res);
+	return res;
+}
 
-	
+void result_output(const int size, const double* const* L, const double* const* U,
+					double* x_arr, double* b_arr, bool bigsize) {	
 	if (bigsize) {
 		std::ofstream result_file {"result.txt"};
 		two_dimensianal_array_print(size, L, result_file);
 		two_dimensianal_array_print(size, U, result_file);
 		one_dimensianal_array_print(size, x_arr, result_file);
+		result_file << residual_calculation(size, L, U, x_arr, b_arr) << std::endl;
+		result_file.close();
 	} else {
 		two_dimensianal_array_print(size, L, std::cout);
 		two_dimensianal_array_print(size, U, std::cout);
 		one_dimensianal_array_print(size, x_arr, std::cout);
+		std::cout << residual_calculation(size, L, U, x_arr, b_arr) << std::endl;
 	}
-	//невязка
 }
-
 
 int main(int argc, char* argv[]) {
 	int array_size {0};
@@ -179,8 +194,6 @@ int main(int argc, char* argv[]) {
 	} else {
 		array_input(array_size, &array, &b_array, [](const int i, const int j) -> double { return i + j + 1; });
 	}
-	two_dimensianal_array_print(array_size, array, std::cout);
-	one_dimensianal_array_print(array_size, b_array, std::cout);
 	double** L {nullptr};
 	double** U {nullptr};
     double* x {nullptr};
@@ -188,7 +201,7 @@ int main(int argc, char* argv[]) {
 	for (int i {0}; i < array_size; ++i) {
 		L[i] = new double[array_size]();
 	}
-	U = new double* [array_size];//////////////
+	U = new double* [array_size];
 	for (int i {0}; i < array_size; ++i) {
 		U[i] = new double[array_size]();
 	}
@@ -199,11 +212,11 @@ int main(int argc, char* argv[]) {
 	} else {
 		result_output(array_size, L, U, x, b_array, 1);
 	}
-	//////////Очистка памяти
 	for (int i {0}; i < array_size; ++i) {
 		delete[] array[i];
 	}
 	delete[] array;
+	delete[] b_array;
 	for (int i {0}; i < array_size; ++i) {
 		delete[] L[i];
 	}
@@ -213,6 +226,5 @@ int main(int argc, char* argv[]) {
 	}
 	delete[] U;
     delete[] x;
-	delete[] b_array;
 	return 0;
 }
