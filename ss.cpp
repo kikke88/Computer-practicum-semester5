@@ -210,6 +210,7 @@ int main(int argc, char* argv[]) {
 	} else {
 		array_input(array_size, array, b_array, [](const int i, const int j, const int n) -> double { return (i + j + 1) / n; });
 	}
+	
 	double** L {nullptr};
 	double** U {nullptr};
     double* x {nullptr};
