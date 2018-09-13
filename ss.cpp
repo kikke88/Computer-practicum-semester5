@@ -2,6 +2,7 @@
 #include <fstream>
 #include <functional>
 #include <cmath>
+#include <utility>
 
 void one_dimensianal_array_print(const int size, const std::vector<double>& arr, std::ostream& stream) {
 	stream << "____________________________" << std::endl;
@@ -88,6 +89,22 @@ void array_input(int& size, std::vector<std::vector<double>>& arr, std::vector<d
 	int method;
 	std::cin >> method; 
 	b_input(size, arr, b_arr, method);	
+}
+
+void max_in_column(const int size, const int from_index, const int in_column,
+								std::vector<int>& indexes, const std::vector<std::vector<double>>& arr) {
+	double max {std::abs(arr[indexes[from_index]][in_column])};
+	int index_of_max = from_index;
+	for (int i = from_index + 1; i < size; ++i) {
+		double cur_num {std::abs(arr[i][in_column])};
+		if (cur_num > max) {
+			max = cur_num;
+			index_of_max = i;
+		}
+	}
+	if (index_of_max != from_index) {
+		std::swap(indexes[from_index], indexes[index_of_max]);	
+	}
 }
 
 std::vector<int> main_func(const int size, std::vector<std::vector<double>>& arr, const std::vector<double>& b_arr, std::vector<double>& x_arr) { 	
