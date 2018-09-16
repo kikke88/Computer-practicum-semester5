@@ -120,7 +120,7 @@ void max_column(const int size, const int line, const int column,
 			line_of_max = i;
 		}
 	}
-	if (max < DBL_EPSILON and line_of_max != line) {
+	if (max < DBL_EPSILON) {
 		int ERROR = 1;
 		throw ERROR;
 	}
@@ -152,7 +152,9 @@ std::vector<int> main_func(const int size, std::vector<std::vector<double>>& arr
 			}
 		}
 		++counter;
-		max_column(size, counter, counter, indexes, arr);
+		if(counter != size - 1) {
+		max_column(size, counter, counter, indexes, arr);	
+		}
 		int k = counter;//Lik
 		for (int i {k}; i < size; ++i) {
 			double sum {0};
@@ -198,12 +200,11 @@ double residual_calculation(const int size, const std::vector<std::vector<double
 		b_arr[indexes[i]] = std::pow(sum - b_arr[indexes[i]], 2);
 	}
 	double res {0};
-	for (int i {0}; i < size; ++i)
-	{
+	for (int i {0}; i < size; ++i) {
 		res = res + b_arr[indexes[i]];
 	}
 	res = std::sqrt(res);
-	return 0;
+	return res;
 }
 
 void result_output(const int size, const std::vector<std::vector<double>>& arr, std::vector<double>& x_arr,
@@ -217,7 +218,7 @@ void result_output(const int size, const std::vector<std::vector<double>>& arr, 
 	} else {
 		L_U_print(size, arr, std::cout, indexes);
 		x_print(size, x_arr, std::cout, indexes);
-		std::cout << residual_calculation(size, arr, x_arr, b_arr, indexes) << std::endl;
+		std::cout << std::scientific << residual_calculation(size, arr, x_arr, b_arr, indexes) << std::endl;
 	}
 }
 
