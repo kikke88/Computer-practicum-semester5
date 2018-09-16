@@ -120,10 +120,11 @@ void max_column(const int size, const int line, const int column,
 			line_of_max = i;
 		}
 	}
-	if (max < DBL_EPSILON) {
-		int ERROR = 1;
-		throw ERROR;
+	
+	if (max < DBL_EPSILON && line != size - 1) {
+		throw 1;
 	}
+	
 	if (line_of_max != line) {
 		std::swap(indexes[line], indexes[line_of_max]);	
 	}
@@ -148,13 +149,15 @@ std::vector<int> main_func(const int size, std::vector<std::vector<double>>& arr
 				for (int j {0}; j < i; ++j) {
 					sum = sum + arr[indexes[i]][j] * arr[indexes[j]][k];
 				}
+				//std::cout << arr[indexes[i]][k] - sum << "()()()(()(()()(()(" << arr[indexes[i]][i] << std::endl;
+				//if (std::abs(arr[indexes[i]][i]) < DBL_EPSILON) {
+				//	throw 0;
+				//}
 				arr[indexes[i]][k] = (arr[indexes[i]][k] - sum) / arr[indexes[i]][i];
 			}
 		}
 		++counter;
-		if(counter != size - 1) {
 		max_column(size, counter, counter, indexes, arr);	
-		}
 		int k = counter;//Lik
 		for (int i {k}; i < size; ++i) {
 			double sum {0};
@@ -163,6 +166,9 @@ std::vector<int> main_func(const int size, std::vector<std::vector<double>>& arr
 			}
 			arr[indexes[i]][k] = arr[indexes[i]][k] - sum;
 		}
+	}
+	if (arr[indexes[size - 1]][size - 1] == 0) {
+		throw 1;
 	}
 	std::vector<double> y (size, 0);
 	for (int i {0}; i < size; ++i)	{
