@@ -120,7 +120,7 @@ void max_column(const int size, const int line, const int column,
 			line_of_max = i;
 		}
 	}
-	if (max < DBL_EPSILON) {
+	if (max < DBL_EPSILON and line_of_max != line) {
 		int ERROR = 1;
 		throw ERROR;
 	}
@@ -195,14 +195,14 @@ double residual_calculation(const int size, const std::vector<std::vector<double
 		for (int j{0}; j < i + 1; ++j) {
 			sum = sum + x_arr[indexes[j]] * arr[indexes[i]][j];
 		}
-		b_arr[indexes[i]] = pow(sum - b_arr[indexes[i]], 2);
+		b_arr[indexes[i]] = std::pow(sum - b_arr[indexes[i]], 2);
 	}
 	double res {0};
 	for (int i {0}; i < size; ++i)
 	{
 		res = res + b_arr[indexes[i]];
 	}
-	res = sqrt(res);
+	res = std::sqrt(res);
 	return 0;
 }
 
@@ -233,16 +233,15 @@ int main(int argc, char* argv[]) {
 		array_input(array_size, array, b_array, [](const int i, const int j, const int n) -> double { return (i + j + 1) / n; });//1.0
 	}
     std::vector<double> x (array_size, 0);
-    std::vector<int> indexes(main_func(array_size, array, b_array, x));
-/*
+    std::vector<int> indexes;
+//    std::vector<int> indexes(main_func(array_size, array, b_array, x));
     try {
 //    indexes = std::move(main_func(array_size, array, b_array, x));     	
-//    indexes = main_func(array_size, array, b_array, x);
+    	indexes = main_func(array_size, array, b_array, x);
     } catch (const int) {
     	std::cout << "degenerate matrix" << std::endl;
     	return 1;
     }
-*/
 	if (array_size <= 10) {
 		result_output(array_size, array, x, b_array, indexes, 0);
 	} else {
