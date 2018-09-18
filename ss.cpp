@@ -121,7 +121,7 @@ void max_column(const int size, const int line, const int column,
 		}
 	}
 	
-	if (max < DBL_EPSILON && line != size - 1) {
+	if (max < DBL_EPSILON) {
 		throw 1;
 	}
 	
@@ -149,15 +149,10 @@ std::vector<int> main_func(const int size, std::vector<std::vector<double>>& arr
 				for (int j {0}; j < i; ++j) {
 					sum = sum + arr[indexes[i]][j] * arr[indexes[j]][k];
 				}
-				//std::cout << arr[indexes[i]][k] - sum << "()()()(()(()()(()(" << arr[indexes[i]][i] << std::endl;
-				//if (std::abs(arr[indexes[i]][i]) < DBL_EPSILON) {
-				//	throw 0;
-				//}
 				arr[indexes[i]][k] = (arr[indexes[i]][k] - sum) / arr[indexes[i]][i];
 			}
 		}
 		++counter;
-		max_column(size, counter, counter, indexes, arr);	
 		int k = counter;//Lik
 		for (int i {k}; i < size; ++i) {
 			double sum {0};
@@ -166,6 +161,7 @@ std::vector<int> main_func(const int size, std::vector<std::vector<double>>& arr
 			}
 			arr[indexes[i]][k] = arr[indexes[i]][k] - sum;
 		}
+		max_column(size, counter, counter, indexes, arr);
 	}
 	if (arr[indexes[size - 1]][size - 1] == 0) {
 		throw 1;
@@ -237,22 +233,20 @@ int main(int argc, char* argv[]) {
 		array_input(array_size, array, b_array, file);
 		file.close();	
 	} else {
-		array_input(array_size, array, b_array, [](const int i, const int j, const int n) -> double { return (i + j + 1) / n; });//1.0
+		array_input(array_size, array, b_array,
+								[](const int i, const int j, const int n) -> double { return (i + j + 1) / n; });//1.0
 	}
     std::vector<double> x (array_size, 0);
-    std::vector<int> indexes;
-//    std::vector<int> indexes(main_func(array_size, array, b_array, x));
     try {
-//    indexes = std::move(main_func(array_size, array, b_array, x));     	
-    	indexes = main_func(array_size, array, b_array, x);
+    	std::vector<int> indexes(main_func(array_size, array, b_array, x));
+    	if (array_size <= 10) {
+			result_output(array_size, array, x, b_array, indexes, 0);
+		} else {
+			result_output(array_size, array, x, b_array, indexes, 1);
+		}
     } catch (const int) {
     	std::cout << "degenerate matrix" << std::endl;
     	return 1;
-    }
-	if (array_size <= 10) {
-		result_output(array_size, array, x, b_array, indexes, 0);
-	} else {
-		result_output(array_size, array, x, b_array, indexes, 1);
-	}
+    }		
 	return 0;
 }
