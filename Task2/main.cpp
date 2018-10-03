@@ -3,6 +3,7 @@
 #include <vector>
 #include <cmath>
 #include <functional>
+#include <cfloat>
 
 
 void array_input(int& size, std::vector<std::vector<double>>& arr, std::ifstream& file) {
@@ -32,8 +33,8 @@ void array_input(int& size, std::vector<std::vector<double>>& arr,
 	}
 }
 
-void save_lines_colums(int size, int line, int column,
-								std::vector<std::vector<double>>& arr,
+void save_lines_colums(const int size, const int line, const int column,
+								const std::vector<std::vector<double>>& arr,
 								std::vector<double>& i_l, std::vector<double>& i_c,
 								std::vector<double>& j_l, std::vector<double>& j_c)
 {
@@ -45,8 +46,8 @@ void save_lines_colums(int size, int line, int column,
 	}
 }
 
-void offdiagonal_recomputation(int size, double& old_offdiagonal, int line, int column,
-								std::vector<std::vector<double>>& arr,
+void offdiagonal_recomputation(const int size, double& old_offdiagonal, const int line, const int column,
+								const std::vector<std::vector<double>>& arr,
 								std::vector<double>& i_l, std::vector<double>& i_c,
 								std::vector<double>& j_l, std::vector<double>& j_c)
 {
@@ -68,7 +69,7 @@ int sgn(T val)
     return (T(0) < val) - (val < T(0));
 }
 
-void multiplication(int size, int line, int column, double& offdiagonal,
+void multiplication(const int size, const int line, const int column, double& offdiagonal,
 								std::vector<std::vector<double>>& arr, std::vector<std::vector<double>>& evec,
 								std::vector<double>& i_l, std::vector<double>& i_c,
 								std::vector<double>& j_l, std::vector<double>& j_c)
@@ -76,37 +77,42 @@ void multiplication(int size, int line, int column, double& offdiagonal,
 	save_lines_colums(size, line, column, arr, i_l, i_c, j_l, j_c);
 	double cos_fi, sin_fi, pi {std::acos(-1)};
 	if (arr[line][line] == arr[column][column]) {
-		cos_fi = sin_fi = sin(pi / 4);
+		cos_fi = sin_fi = std::sqrt(2) / 2;
 	} else {
-		double x = (-1) * 2 * arr[line][column];
+		double x = -2 * arr[line][column];
 		double y = arr[line][line] - arr[column][column];
 		cos_fi = std::sqrt((1 + std::abs(y) / std::sqrt(std::pow(x, 2) + std::pow(y, 2))) / 2);
-		sin_fi = std::abs(x) * sgn(x * y) / (2 * cos_fi * std::sqrt(std::pow(x, 2) + std::pow(y, 2)));
+		sin_fi = std::abs(x) * sgn(x * y)/ (2 * cos_fi * std::sqrt(std::pow(x, 2) + std::pow(y, 2)));
 	}
+	std::cout << cos_fi << "    " << sin_fi << std::endl;
+	double tmp1;
+	/*std::cout << "************" << std::endl;
+	for (int i {0}; i < size; ++i) {
+		for (int j {0}; j < size; ++j) {
+			std::cout << evec[i][j] << "\t";
+		}
+		std::cout << std::endl;
+	}*/
 
-	double tmp1, tmp2;
 	for (int k {0}; k < size; ++k) {
 		tmp1 = evec[k][line];
-		tmp2 = evec[k][column];
-		evec[k][line] = tmp1 * cos_fi + tmp2 * sin_fi;
-		evec[k][column] = tmp1 * (-sin_fi) + tmp2 * cos_fi;
+		evec[k][line] = evec[k][line] * cos_fi + evec[k][column] * sin_fi;
+		evec[k][column] = tmp1 * (-sin_fi) + evec[k][column] * cos_fi;
 	}
 	for (int k {0}; k < size; ++k) {
 		tmp1 = arr[k][line];
-		tmp2 = arr[k][column];
-		arr[k][line] = tmp1 * cos_fi + tmp2 * (-sin_fi);
-		arr[k][column] = tmp1 * sin_fi + tmp2 * cos_fi;
+		arr[k][line] = arr[k][line] * cos_fi + arr[k][column] * (-sin_fi);
+		arr[k][column] = tmp1 * sin_fi + arr[k][column] * cos_fi;
 	}
 	for (int k {0}; k < size; ++k) {
 		tmp1 = arr[line][k];
-		tmp2 = arr[column][k];
-		arr[line][k] = tmp1 * cos_fi + tmp2 * (-sin_fi);
-		arr[column][k] = tmp1 * sin_fi + tmp2 * cos_fi;
+		arr[line][k] = arr[line][k] * cos_fi + arr[column][k] * (-sin_fi);
+		arr[column][k] = tmp1 * sin_fi + arr[column][k] * cos_fi;
 	}
 	offdiagonal_recomputation(size, offdiagonal, line, column, arr, i_l, i_c, j_l, j_c);
 }
 
-void main_func(int size, std::vector<std::vector<double>>& arr, std::vector<std::vector<double>>& evec, double eps)
+void main_func(const int size, std::vector<std::vector<double>>& arr, std::vector<std::vector<double>>& evec, const double eps)
 {	
 	int iteration {0};
 	double offdiagonal;
@@ -117,22 +123,22 @@ void main_func(int size, std::vector<std::vector<double>>& arr, std::vector<std:
 			}
 		}
 	}
+
 	int strategy;
 	std::cout << "Enter the number of the strategy 1 / 2 / 3." << std::endl;
 	std::cin >> strategy;
-	std::vector<double> i_line(size), i_column(size), j_line(size), j_column(size);//сохранять перед умножением
+	std::vector<double> i_line(size), i_column(size), j_line(size), j_column(size);
 	switch (strategy)
 	{
 		case 1:
 			{
+				std::cout << "111111" << std::endl;
 				while (offdiagonal >= eps) {
-					std::cout << eps << " |||||| " << offdiagonal << std::endl;
 					++iteration;
-
 					//1
 					int line {0}, column {1};
 					double tmp_max = std::abs(arr[line][column]);
-					for (int i {0}; i < size; ++i) {
+					for (int i {0}; i < size - 1; ++i) {
 						for (int j {i + 1}; j < size; ++j) {///симметрия
 							if (tmp_max < std::abs(arr[i][j])) {
 								tmp_max = std::abs(arr[i][j]);
@@ -148,6 +154,7 @@ void main_func(int size, std::vector<std::vector<double>>& arr, std::vector<std:
 			}	
 		case 2:
 			{
+				std::cout << "222222" << std::endl;
 				if (offdiagonal < eps) {
 					break;
 				}
@@ -196,10 +203,10 @@ void main_func(int size, std::vector<std::vector<double>>& arr, std::vector<std:
 					double max_value_in_max_line;
 					if (line != 0) {
 						column = 0;
-						max_value_in_max_line = std::abs(arr[line][0]);
+						max_value_in_max_line = std::abs(arr[line][column]);
 					} else {
 						column = 1;
-						max_value_in_max_line = std::abs(arr[line][1]);
+						max_value_in_max_line = std::abs(arr[line][column]);
 					}
 					for (int j {0}; j < size; ++j) {
 						if (j != line) {
@@ -215,15 +222,18 @@ void main_func(int size, std::vector<std::vector<double>>& arr, std::vector<std:
 				break;
 			}
 		case 3:
-			{
-				for (int line {0}; line < size; ++line) {
-					for (int column {line + 1}; column < size; ++column) {
-						while (offdiagonal >= eps) {
-						++iteration;
-
-						multiplication(size, line, column, offdiagonal, arr, evec, i_line, i_column, j_line, j_column);
+			{	
+				std::cout << "33333" << std::endl;
+				while (offdiagonal >= eps) {
+					for (int line {0}; line < size - 1; ++line) {
+						for (int column {line + 1}; column < size; ++column) {
+							if (offdiagonal >= eps) {
+								++iteration;
+								multiplication(size, line, column, offdiagonal, arr, evec, i_line, i_column, j_line, j_column);
+							} else {
+								goto END;
+							}		
 						}
-						goto END;		
 					}
 				}
 END:
@@ -231,30 +241,18 @@ END:
 			}
 		default:
 			{
-			//error
-			break;
+				//error
+				break;
 			}
 	}
-	for (int i {0}; i < size; ++i) {
-		for (int j {0}; j < size; ++j) {
-			std::cout << arr[i][j] << "\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "++++++++++++++++++++++" << std::endl;
-	for (int i {0}; i < size; ++i) {
-		for (int j {0}; j < size; ++j) {
-			std::cout << evec[i][j] << "\t";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << "iteration " << iteration << std::endl;
+	std::cout << "iterations - " << iteration << std::endl;
 
 }
 
-int main(int argc, char* argv[]) //проставить, где надо const
-{
-	std::cout.precision(4);
+int main(int argc, char* argv[])
+{	
+	std::cout.setf(std::ios::scientific);
+	//std::cout.precision(3);
 	int array_size;
 	std::vector<std::vector<double>> array;
 	if (argc == 2) {
@@ -268,7 +266,7 @@ int main(int argc, char* argv[]) //проставить, где надо const
 		std::cout << "Restart the programm with correct arguments!" << std::endl;
 		return 1;
 	}
-	for (int i {0}; i <array_size; ++i) {
+	for (int i {0}; i < array_size; ++i) {
 		for (int j {0}; j < array_size; ++j) {
 			std::cout << array[i][j] << "\t";
 		}
@@ -278,8 +276,24 @@ int main(int argc, char* argv[]) //проставить, где надо const
 	for (int i {0}; i < array_size; ++i) {
 		eigen_vectors[i][i] = 1;
 	}
-	double epsilon = 1.0/10000;
+	double epsilon {DBL_EPSILON * 10000};
 	main_func(array_size, array, eigen_vectors, epsilon);
+	std::cout << "<<Eigenvalues>>" << std::endl;
+	for (int i {0}; i < size; ++i) {
+		std::cout << arr[i][i] << std::endl;
+	}
+/*	
+	for (int i {0}; i < size; ++i) {
+		for (int j {0}; j < size; ++j) {
+			std::cout << evec[i][j] << "\t";
+		}
+		std::cout << std::endl;
+	}
+*/
+	if (array_size > 10) {
+		std::ofstream ofile {"result.txt"};
+		
+	}
 
 	return 0;
 }
