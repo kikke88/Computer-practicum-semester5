@@ -4,7 +4,7 @@
 #include <cmath>
 #include <functional>
 #include <cfloat>
-
+#include <chrono>
 
 void array_input(int& size, std::vector<std::vector<double>>& arr, std::ifstream& file) {
 	file >> size;
@@ -85,29 +85,29 @@ void multiplication(const int size, const int line, const int column, double& of
 		sin_fi = std::abs(x) * sgn(x * y)/ (2 * cos_fi * std::sqrt(std::pow(x, 2) + std::pow(y, 2)));
 	}
 	std::cout << cos_fi << "    " << sin_fi << std::endl;
-	double tmp1;
-	/*std::cout << "************" << std::endl;
+	double tmp;	
+	for (int k {0}; k < size; ++k) {
+		tmp = evec[k][line];
+		evec[k][line] = evec[k][line] * cos_fi + evec[k][column] * sin_fi;
+		evec[k][column] = tmp * -sin_fi + evec[k][column] * cos_fi;
+	}
+	/*
 	for (int i {0}; i < size; ++i) {
 		for (int j {0}; j < size; ++j) {
 			std::cout << evec[i][j] << "\t";
 		}
 		std::cout << std::endl;
-	}*/
-
-	for (int k {0}; k < size; ++k) {
-		tmp1 = evec[k][line];
-		evec[k][line] = evec[k][line] * cos_fi + evec[k][column] * sin_fi;
-		evec[k][column] = tmp1 * (-sin_fi) + evec[k][column] * cos_fi;
 	}
+	*/
 	for (int k {0}; k < size; ++k) {
-		tmp1 = arr[k][line];
+		tmp = arr[k][line];
 		arr[k][line] = arr[k][line] * cos_fi + arr[k][column] * (-sin_fi);
-		arr[k][column] = tmp1 * sin_fi + arr[k][column] * cos_fi;
+		arr[k][column] = tmp * sin_fi + arr[k][column] * cos_fi;
 	}
 	for (int k {0}; k < size; ++k) {
-		tmp1 = arr[line][k];
+		tmp = arr[line][k];
 		arr[line][k] = arr[line][k] * cos_fi + arr[column][k] * (-sin_fi);
-		arr[column][k] = tmp1 * sin_fi + arr[column][k] * cos_fi;
+		arr[column][k] = tmp * sin_fi + arr[column][k] * cos_fi;
 	}
 	offdiagonal_recomputation(size, offdiagonal, line, column, arr, i_l, i_c, j_l, j_c);
 }
@@ -123,19 +123,19 @@ void main_func(const int size, std::vector<std::vector<double>>& arr, std::vecto
 			}
 		}
 	}
-
 	int strategy;
 	std::cout << "Enter the number of the strategy 1 / 2 / 3." << std::endl;
 	std::cin >> strategy;
 	std::vector<double> i_line(size), i_column(size), j_line(size), j_column(size);
+	std::chrono::high_resolution_clock::time_point begin, end;
+	std::chrono::duration<double> work_time;
 	switch (strategy)
 	{
 		case 1:
 			{
-				std::cout << "111111" << std::endl;
+				begin = std::chrono::high_resolution_clock::now();
 				while (offdiagonal >= eps) {
 					++iteration;
-					//1
 					int line {0}, column {1};
 					double tmp_max = std::abs(arr[line][column]);
 					for (int i {0}; i < size - 1; ++i) {
@@ -147,14 +147,15 @@ void main_func(const int size, std::vector<std::vector<double>>& arr, std::vecto
 							}
 						}
 					}
-					//1
 					multiplication(size, line, column, offdiagonal, arr, evec, i_line, i_column, j_line, j_column);
-				}			
+				}
+				end = std::chrono::high_resolution_clock::now();
+				work_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin);
 				break;
 			}	
 		case 2:
 			{
-				std::cout << "222222" << std::endl;
+				begin = std::chrono::high_resolution_clock::now();
 				if (offdiagonal < eps) {
 					break;
 				}
@@ -169,8 +170,6 @@ void main_func(const int size, std::vector<std::vector<double>>& arr, std::vecto
 				int line, column;//function
 				while (offdiagonal >= eps) {	
 					++iteration;
-
-					//2
 					if (iteration > 1) {
 						sum_lines[line] = 0;
 						sum_lines[column] = 0;
@@ -216,14 +215,15 @@ void main_func(const int size, std::vector<std::vector<double>>& arr, std::vecto
 							}
 						}
 					}
-					//2
 					multiplication(size, line, column, offdiagonal, arr, evec, i_line, i_column, j_line, j_column);
 				}
+				end = std::chrono::high_resolution_clock::now();
+				work_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin);
 				break;
 			}
 		case 3:
 			{	
-				std::cout << "33333" << std::endl;
+				begin = std::chrono::high_resolution_clock::now();
 				while (offdiagonal >= eps) {
 					for (int line {0}; line < size - 1; ++line) {
 						for (int column {line + 1}; column < size; ++column) {
@@ -237,6 +237,8 @@ void main_func(const int size, std::vector<std::vector<double>>& arr, std::vecto
 					}
 				}
 END:
+				end = std::chrono::high_resolution_clock::now();
+				work_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin);
 				break;
 			}
 		default:
@@ -245,8 +247,22 @@ END:
 				break;
 			}
 	}
-	std::cout << "iterations - " << iteration << std::endl;
+	std::cout << "iterations= " << iteration << std::endl << "time= " << work_time.count() << std::endl << "epsilon= " << eps << std::endl;
+}
 
+void print_evec(const int size, std::vector<std::vector<double>>& evec, std::ostream& stream)
+{	
+	std::cout << "<<Eigenvectors>>" << std::endl;
+	for (int i {0}; i < size; ++i) {
+		stream << "x[" << i << "]" << "\t\t";
+	}
+	stream << std::endl;
+	for (int i {0}; i < size; ++i) {
+		for (int j {0}; j < size; ++j) {
+			stream << evec[i][j] << "\t";
+		}
+		stream << std::endl;
+	}
 }
 
 int main(int argc, char* argv[])
@@ -279,21 +295,15 @@ int main(int argc, char* argv[])
 	double epsilon {DBL_EPSILON * 10000};
 	main_func(array_size, array, eigen_vectors, epsilon);
 	std::cout << "<<Eigenvalues>>" << std::endl;
-	for (int i {0}; i < size; ++i) {
-		std::cout << arr[i][i] << std::endl;
+	for (int i {0}; i < array_size; ++i) {
+		std::cout << array[i][i] << std::endl;
 	}
-/*	
-	for (int i {0}; i < size; ++i) {
-		for (int j {0}; j < size; ++j) {
-			std::cout << evec[i][j] << "\t";
-		}
-		std::cout << std::endl;
-	}
-*/
 	if (array_size > 10) {
 		std::ofstream ofile {"result.txt"};
-		
+		print_evec(array_size, eigen_vectors, ofile);
+		ofile.close();				
+	} else {
+		print_evec(array_size, eigen_vectors, std::cout);
 	}
-
 	return 0;
 }
