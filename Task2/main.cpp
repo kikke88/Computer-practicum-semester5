@@ -84,21 +84,12 @@ void multiplication(const int size, const int line, const int column, double& of
 		cos_fi = std::sqrt((1 + std::abs(y) / std::sqrt(std::pow(x, 2) + std::pow(y, 2))) / 2);
 		sin_fi = std::abs(x) * sgn(x * y)/ (2 * cos_fi * std::sqrt(std::pow(x, 2) + std::pow(y, 2)));
 	}
-	std::cout << cos_fi << "    " << sin_fi << std::endl;
 	double tmp;	
 	for (int k {0}; k < size; ++k) {
 		tmp = evec[k][line];
-		evec[k][line] = evec[k][line] * cos_fi + evec[k][column] * sin_fi;
-		evec[k][column] = tmp * -sin_fi + evec[k][column] * cos_fi;
+		evec[k][line] = evec[k][line] * cos_fi + evec[k][column] * -sin_fi;
+		evec[k][column] = tmp * sin_fi + evec[k][column] * cos_fi;
 	}
-	/*
-	for (int i {0}; i < size; ++i) {
-		for (int j {0}; j < size; ++j) {
-			std::cout << evec[i][j] << "\t";
-		}
-		std::cout << std::endl;
-	}
-	*/
 	for (int k {0}; k < size; ++k) {
 		tmp = arr[k][line];
 		arr[k][line] = arr[k][line] * cos_fi + arr[k][column] * (-sin_fi);
@@ -167,7 +158,7 @@ void main_func(const int size, std::vector<std::vector<double>>& arr, std::vecto
 						}
 					}
 				}
-				int line, column;//function
+				int line, column;
 				while (offdiagonal >= eps) {	
 					++iteration;
 					if (iteration > 1) {
@@ -252,14 +243,16 @@ END:
 
 void print_evec(const int size, std::vector<std::vector<double>>& evec, std::ostream& stream)
 {	
-	std::cout << "<<Eigenvectors>>" << std::endl;
+	stream.setf(std::ios::scientific);
+	stream << "<<Eigenvectors>>" << std::endl;
 	for (int i {0}; i < size; ++i) {
-		stream << "x[" << i << "]" << "\t\t";
+		stream << "x[" << i << "]" << "\t\t\t";
 	}
 	stream << std::endl;
+	
 	for (int i {0}; i < size; ++i) {
 		for (int j {0}; j < size; ++j) {
-			stream << evec[i][j] << "\t";
+			stream << evec[i][j] / evec[size - 1][j] << "\t"; //////
 		}
 		stream << std::endl;
 	}
@@ -292,7 +285,7 @@ int main(int argc, char* argv[])
 	for (int i {0}; i < array_size; ++i) {
 		eigen_vectors[i][i] = 1;
 	}
-	double epsilon {DBL_EPSILON * 10000};
+	double epsilon {DBL_EPSILON / 100000000000}; //DBL_EPSILON * 10000    5*5  and 6*6
 	main_func(array_size, array, eigen_vectors, epsilon);
 	std::cout << "<<Eigenvalues>>" << std::endl;
 	for (int i {0}; i < array_size; ++i) {
