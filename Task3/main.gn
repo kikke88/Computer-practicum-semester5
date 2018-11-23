@@ -1,1 +1,0 @@
-"set xrange [0:1]\nset yrange [" << Vmin << " - 1; " << Vmax << " + 1]\niter 0\nload/"plotter.gn/""

@@ -1,1 +1,0 @@
-"iter = iter + 1\nplot "graph.data" index iter u 1:2 w l\npause 0,25\nif (iter <" << num_of_time_step << " ) reread\n"
