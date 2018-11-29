@@ -1,2 +1,2 @@
 #!/bin/bash
-rm graph.data main main.gn plotter.gn
+rm -rf graph.data main main.gn plotter.gn
