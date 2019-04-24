@@ -23,7 +23,15 @@ void array_input(int& size, std::vector<std::vector<double>>& arr,
 {	
 	std::cout << "Enter the array size." << std::endl;
 	std::cin >> size;
-	double tmp;
+	for (int i {0}; i < size; ++i) {
+		arr.push_back(std::vector<double>(size, 0));
+	}
+	for (int i {0}; i < size; ++i) {
+		arr[i][i] = 1;
+		arr[size - 1][i] = i + 1;
+		arr[i][size - 1] = i + 1;
+	}
+/*
 	for (int i {0}; i < size; ++i) {
 		arr.push_back(std::vector<double>());
 		for (int j {0}; j < size; ++j) {
@@ -31,6 +39,7 @@ void array_input(int& size, std::vector<std::vector<double>>& arr,
 			arr[i].push_back(tmp);
 		}
 	}
+*/	
 }
 
 void save_lines_colums(const int size, const int line, const int column,
@@ -117,6 +126,7 @@ void main_func(const int size, std::vector<std::vector<double>>& arr, std::vecto
 	int strategy;
 	std::cout << "Enter the number of the strategy 1 / 2 / 3." << std::endl;
 	std::cin >> strategy;
+	std::cout << std::endl << std::endl;
 	std::vector<double> i_line(size), i_column(size), j_line(size), j_column(size);
 	std::chrono::high_resolution_clock::time_point begin, end;
 	std::chrono::duration<double> work_time;
@@ -246,13 +256,13 @@ void print_evec(const int size, std::vector<std::vector<double>>& evec, std::ost
 	stream.setf(std::ios::scientific);
 	stream << "<<Eigenvectors>>" << std::endl;
 	for (int i {0}; i < size; ++i) {
-		stream << "x[" << i << "]" << "\t\t\t";
+			stream << "x[" << i << "]" << "\t\t\t";
 	}
 	stream << std::endl;
 	
 	for (int i {0}; i < size; ++i) {
 		for (int j {0}; j < size; ++j) {
-			stream << evec[i][j] / evec[size - 1][j] << "\t"; //////
+			stream << evec[i][j] << "\t";
 		}
 		stream << std::endl;
 	}
@@ -270,11 +280,12 @@ int main(int argc, char* argv[])
 		file.close();	
 	} else if (argc == 1) {
 		array_input(array_size, array,
-								[](const int i, const int j, const int n) -> double { return 1.0 / (2 * n - i - j - 1); });//1.0
+								[](const int i, const int j, const int n) -> double { return 1.0; });//1.0
 	} else {
 		std::cout << "Restart the programm with correct arguments!" << std::endl;
 		return 1;
 	}
+
 	for (int i {0}; i < array_size; ++i) {
 		for (int j {0}; j < array_size; ++j) {
 			std::cout << array[i][j] << "\t";
@@ -285,7 +296,7 @@ int main(int argc, char* argv[])
 	for (int i {0}; i < array_size; ++i) {
 		eigen_vectors[i][i] = 1;
 	}
-	double epsilon {DBL_EPSILON / 100000000000}; //DBL_EPSILON * 10000    5*5  and 6*6
+	double epsilon {DBL_EPSILON * 1000000};// {DBL_EPSILON * 100000};// 100000000000}; //DBL_EPSILON * 10000    5*5  and 6*6
 	main_func(array_size, array, eigen_vectors, epsilon);
 	std::cout << "<<Eigenvalues>>" << std::endl;
 	for (int i {0}; i < array_size; ++i) {

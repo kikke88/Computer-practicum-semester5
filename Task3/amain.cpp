@@ -5,6 +5,8 @@
 #include <vector>
 #include <deque>
 
+
+
 class Heat_transfer_equation {
 	std::function<double(const double, const double)> equation;
 	double a {1.0};
@@ -12,6 +14,8 @@ class Heat_transfer_equation {
 	bool first_type_left, first_type_right;
 	std::function<double(const double, const double)> f_function;
 	int num_of_x_step {100}, num_of_time_step {40000};//100 40000
+	int counter;
+	int devider {10};
 	double time_end, x_step {1.0 / num_of_x_step}, time_step {time_end / num_of_time_step};
 	std::deque<double> values_in_grid_nodes;
 	double V_min, V_max;
@@ -45,6 +49,7 @@ Heat_transfer_equation::Heat_transfer_equation(
 							f_function {_f_function}, values_in_grid_nodes (num_of_x_step + 1),
 							time_end(_time_end), num_of_x_step{_num_of_x_step}, num_of_time_step{_num_of_time_step}
 {
+	std::cout << time_end << "  " <<  num_of_x_step << "  "<< num_of_time_step << std::endl;
 }
 
 void Heat_transfer_equation::min_max()
@@ -76,6 +81,12 @@ void Heat_transfer_equation::boundary_value(int time)
 
 void Heat_transfer_equation::recording_data_to_file(std::ofstream& ofile)
 {
+
+	if (counter % devider) {
+		++counter;
+		return;
+	}
+	++counter;
 	double cur_x {0.0};
 	for (int i {0}; i < num_of_x_step + 1; ++i) {
 		ofile << cur_x << "\t" << values_in_grid_nodes[i] << std::endl;
@@ -178,40 +189,43 @@ void Heat_transfer_equation::graph()
 {
 	std::ofstream omain("main.gn"), oplotter("plotter.gn");
 	omain << "set xrange [0:1]\nset yrange [" << static_cast<int>(V_min) - 1 <<": " << static_cast<int>(V_max)  + 1 << "]\niter = 0\nload\"plotter.gn\"";
-	oplotter << "iter = iter + 1\nplot \"graph.data\" i iter u 1:2 w l lt 6 notitle\npause 0.1\nif (iter < " << num_of_time_step << ") reread\n";
+	oplotter << "iter = iter + 1\nplot \"graph.data\" i iter u 1:2 w l lt 6 notitle\npause 0.1\nif (iter < " << num_of_time_step / devider - 5 << ") reread\n";
 }
 
 //[](const int i, const int j, const int n) -> double { return 1.0 / (2 * n - i - j - 1); }
+/*
 double u(const double x, const double t)
 {
 	//return (t * t + 1) * sin(x * M_PI);
 	 //return  exp(5.0 - M_PI * M_PI * t) * sin(x * M_PI);
-    return M_PI * x + t + 2 * cos(10 * t) * sin(5 * x);
+    return M_PI * x + t + 2 * co;
 }
 
 double left(const double t)
 {
+	//return sin(t);
 	//return 0;//true
 	//return (t * t + 1) * M_PI;
 	return t;//true
-    //return 0;//false
+    //return M_PI + 10 * cos(10 * t);//false
     //return exp(5.0 - M_PI * M_PI * t) * M_PI;//false
 }
 double right(const double t)
 {
+	//return 0;
 	//return 0;//true
 	//return -(t * t + 1) * M_PI;
 	//return -exp(5.0 - M_PI * M_PI * t) * M_PI;//false
     //(1,t)
     return M_PI + t + 2 * cos(10 * t) * sin(5);//true
-    //return 10 * cos( 10 * t) * cos(5 * x);//false
-
+    //return M_PI + 10 * cos(10 * t) * cos(5);//false
 }
 double begin(const double x)
 {
 	//return sin(x * M_PI);
 	//return exp(5.0) * sin(x * M_PI);
     return M_PI* x + 2 * sin(5 * x);
+    //return 0;
 }
 double f(const double x, const double t)
 {
@@ -219,7 +233,42 @@ double f(const double x, const double t)
 	return 1 + sin(5 * x) * (50 * cos(10 * t) - 20 * sin(10 * t));
     //return (2 * t + (t * t + 1) * M_PI * M_PI) * sin(x * M_PI);
 }
+*/
+double u(double x, double t) {
+//return exp(5.0 - M_PI * M_PI * t) * sin(x * M_PI);
+return (t*t + 1)*sin(M_PI_2 * x);
+}
 
+double begin(double x) {
+//return exp(5.0) * sin(x * M_PI);
+return sin(M_PI_2 * x);
+}
+
+double left(double t) {
+//return 0;
+return M_PI_2*(t*t + 1); // 1
+
+}
+
+double right(double t) {
+//return 0;
+return 0;
+}
+
+double psi1(double t) {
+//return t;
+return M_PI * tan(t) * t + 10 * cos(10 * t);
+}
+
+double psi2(double t) {
+//return -exp(5.0 - M_PI * M_PI * t) * M_PI;
+return M_PI * tan(t) * t + 10 * cos(10 * t) * cos(5);
+}
+
+double f(double x, double t) {
+//return 0;
+return 2*t*sin(M_PI_2 * x) + (M_PI_2*M_PI_2)*(t*t + 1)*sin(M_PI_2 * x);
+}
 int main(int argc, char* argv[])
 {
 	int num_x {100}, num_time {1000};//2*x*x<t
@@ -234,8 +283,7 @@ int main(int argc, char* argv[])
 			exit(1);
 		}
 	}
-	std::cout << num_x << "  " << num_time << std::endl;
-	Heat_transfer_equation equation (u, left, right, begin, true, true, f, 1, num_x, num_time);
+	Heat_transfer_equation equation (u, left, right, begin, false, false, f, 1.0, num_x, num_time);
     std::cout << "Explicit(0) or implicit(1) scheme?" << std::endl;
     int tmp;
     std::cin >> tmp;
@@ -247,6 +295,6 @@ int main(int argc, char* argv[])
     }
     //equation.implicit_scheme();
 	equation.approximation();
-	equation.graph();
+	//equation.graph();
 	return 0;
 }
